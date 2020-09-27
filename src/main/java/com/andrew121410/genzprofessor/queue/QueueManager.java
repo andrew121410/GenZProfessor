@@ -47,14 +47,15 @@ public class QueueManager {
     private void setupQueue() {
         Runnable runnable = () -> {
             if (!this.firefoxManager.isRunning() && !this.requestQueue.isEmpty()) {
-                Request request = this.requestQueue.poll();
-                System.out.println("Processing request in queue");
-                this.firefoxManager.processLink(request.getLink(), (a) -> {
+                Request request = this.requestQueue.remove();
+                if (request == null) return;
+                System.out.println("Processing request: " + request.getUserId());
+                this.firefoxManager.processLink(request.getLink(), (files) -> {
                     User user = this.genZProfessor.getJda().getUserById(request.getUserId());
                     if (user == null) return;
                     user.openPrivateChannel().queue(privateChannel -> {
                         privateChannel.sendMessage("Hello here's the files.").queue();
-                        a.forEach((file -> privateChannel.sendFile(file).queue()));
+                        files.forEach((file -> privateChannel.sendFile(file).queue()));
                         privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
                     });
                 });

@@ -2,9 +2,6 @@ package com.andrew121410.genzprofessor.queue;
 
 import com.andrew121410.genzprofessor.GenZProfessor;
 import io.github.bonigarcia.wdm.WebDriverManager;
-import lombok.SneakyThrows;
-import net.dv8tion.jda.api.entities.TextChannel;
-import net.dv8tion.jda.api.utils.AttachmentOption;
 import org.openqa.selenium.*;
 import org.openqa.selenium.firefox.FirefoxBinary;
 import org.openqa.selenium.firefox.FirefoxDriver;
@@ -34,7 +31,10 @@ public class FirefoxManager extends Thread {
     public FirefoxManager(GenZProfessor genZProfessor) {
         this.genZProfessor = genZProfessor;
         this.tempFolder = new File("cache");
-        if (!tempFolder.exists()) this.tempFolder.mkdir();
+        if (this.tempFolder.exists()) {
+            for (File file : this.tempFolder.listFiles()) file.delete();
+        }
+        this.tempFolder.mkdir();
     }
 
     public void setup() {
@@ -96,9 +96,8 @@ public class FirefoxManager extends Thread {
             throw new NullPointerException("Couldn't find login button when logging in");
         }
         realButton.click();
-
-        TextChannel textChannel = GenZProfessor.getInstance().getJda().getGuildById("724458074688979046").getTextChannelById("724458075506868296");
-        textChannel.sendFile(((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE), AttachmentOption.SPOILER).queue();
+        //Debug
+        GenZProfessor.getInstance().getJda().getGuildById("724458074688979046").getTextChannelById("724458075506868296").sendFile(savePicture()).queue();
     }
 
     public void quit() {
@@ -124,7 +123,6 @@ public class FirefoxManager extends Thread {
         List<File> files = new ArrayList<>();
         int a = 0;
         for (String url : urls) {
-            if (!url.contains("media.cheggcdn.com")) continue;
             try {
                 URL urlObject = new URL(url);
                 BufferedImage saveImage = ImageIO.read(urlObject);
@@ -139,25 +137,31 @@ public class FirefoxManager extends Thread {
         return files;
     }
 
-    @SneakyThrows
-    private List<File> getAnswerHtml() {
-        List<File> files = new ArrayList<>();
-        WebElement webElement = this.driver.findElement(By.name("answer-body"));
-        String htmlCode = webElement.getAttribute("innerHTML");
+    private File getAnswerHtml() {
+        WebElement webElement = this.driver.findElement(By.className("answers-list"));
+        if (webElement == null) {
+            System.out.println("webElement answer-body was null");
+            return null;
+        }
         File file = new File(this.tempFolder, "answer.html");
-        BufferedWriter bufferedWriter = new BufferedWriter(new FileWriter(file));
-        bufferedWriter.write(htmlCode);
-        bufferedWriter.close();
-        files.add(file);
-        return files;
+        String htmlCode = webElement.getAttribute("innerHTML");
+        if (htmlCode == null) throw new NullPointerException("innerHTML is null");
+        try (FileWriter fileWriter = new FileWriter(file)) {
+            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
+            bufferedWriter.write(htmlCode);
+            bufferedWriter.close();
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return file;
     }
 
     public void processLink(String link, Consumer<List<File>> consumer) {
         this.isRunning = true;
-        List<File> files = new ArrayList<>();
         load(link);
-        files.addAll(getAllImages());
-//        files.addAll(getAnswerHtml());
+        List<File> files = new ArrayList<>(getAllImages());
+        File file = getAnswerHtml();
+        if (file != null) files.add(file);
         consumer.accept(files);
         this.isRunning = false;
     }
