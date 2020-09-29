@@ -1,4 +1,4 @@
-package com.andrew121410.genzprofessor.queue;
+package com.andrew121410.genzprofessor.manager;
 
 import com.andrew121410.genzprofessor.GenZProfessor;
 import io.github.bonigarcia.wdm.WebDriverManager;
@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+@Deprecated
 public class FirefoxManager extends Thread {
 
     private GenZProfessor genZProfessor;

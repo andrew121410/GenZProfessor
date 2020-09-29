@@ -1,4 +1,4 @@
-package com.andrew121410.genzprofessor.commands.manager;
+package com.andrew121410.genzprofessor.manager;
 
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 

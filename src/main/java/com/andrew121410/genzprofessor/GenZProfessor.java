@@ -1,9 +1,9 @@
 package com.andrew121410.genzprofessor;
 
 import com.andrew121410.genzprofessor.commands.CheggCMD;
-import com.andrew121410.genzprofessor.commands.manager.CommandManager;
 import com.andrew121410.genzprofessor.config.ConfigManager;
-import com.andrew121410.genzprofessor.queue.QueueManager;
+import com.andrew121410.genzprofessor.manager.CommandManager;
+import com.andrew121410.genzprofessor.manager.QueueManager;
 import com.andrew121410.genzprofessor.utils.SetListMap;
 import lombok.SneakyThrows;
 import net.dv8tion.jda.api.JDA;

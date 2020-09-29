@@ -1,6 +1,6 @@
 package com.andrew121410.genzprofessor.utils;
 
-import com.andrew121410.genzprofessor.commands.manager.ICommand;
+import com.andrew121410.genzprofessor.manager.ICommand;
 
 import java.util.HashMap;
 import java.util.Map;

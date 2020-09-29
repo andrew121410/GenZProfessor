@@ -1,8 +1,9 @@
 package com.andrew121410.genzprofessor.commands;
 
 import com.andrew121410.genzprofessor.GenZProfessor;
-import com.andrew121410.genzprofessor.commands.manager.ICommand;
+import com.andrew121410.genzprofessor.manager.ICommand;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 
 import java.util.concurrent.TimeUnit;
@@ -18,6 +19,14 @@ public class CheggCMD implements ICommand {
 
     @Override
     public boolean onMessage(MessageReceivedEvent event, String[] args) {
+        TextChannel textChannel = event.getGuild().getTextChannelById("760306355805749248");
+
+        if (!event.getTextChannel().getId().equals("760306355805749248")) {
+            event.getMessage().delete().queue();
+            event.getTextChannel().sendMessage("Wrong channel please use " + textChannel.getAsMention() + " " + event.getAuthor().getAsMention()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
+            return true;
+        }
+
         if (args.length == 0) {
             event.getTextChannel().sendMessage("Usage: " + this.genZProfessor.getConfigManager().getMainConfig().getPrefix() + "c <Link>").queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
         } else if (args.length == 1) {
@@ -33,7 +42,7 @@ public class CheggCMD implements ICommand {
                     .setAuthor("Chegg Answers")
                     .setThumbnail("https://i.pinimg.com/originals/70/a5/52/70a552e8e955049c8587b2d7606cd6a6.gif")
                     .setTitle("Your Chegg request is being processed.")
-                    .setDescription("Your request has been placed into the queue \r\n You are number " + 0
+                    .setDescription("Your request has been placed into the queue \r\n You are number " + this.genZProfessor.getQueueManager().getThing()
                             + "\r\n " + "\r\nOnce we are done processing your request we will send you a DM " + event.getMember().getAsMention());
             event.getTextChannel().sendMessage(embedBuilder.build()).queue(message1 -> message1.delete().queueAfter(30, TimeUnit.SECONDS));
             event.getMessage().delete().queueAfter(30, TimeUnit.SECONDS);

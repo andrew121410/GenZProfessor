@@ -1,7 +1,8 @@
-package com.andrew121410.genzprofessor.commands.manager;
+package com.andrew121410.genzprofessor.manager;
 
 import com.andrew121410.genzprofessor.GenZProfessor;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.ChannelType;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -26,6 +27,8 @@ public class CommandManager {
 
     @SubscribeEvent
     public void onMessageReceived(MessageReceivedEvent event) {
+        if (event.getChannelType() == ChannelType.PRIVATE) return;
+
         if (!event.getMessage().getContentRaw().startsWith(prefix)) {
             return;
         }

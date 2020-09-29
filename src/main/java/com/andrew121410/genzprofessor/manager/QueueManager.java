@@ -1,4 +1,4 @@
-package com.andrew121410.genzprofessor.queue;
+package com.andrew121410.genzprofessor.manager;
 
 import com.andrew121410.genzprofessor.GenZProfessor;
 import lombok.AllArgsConstructor;
@@ -19,7 +19,7 @@ public class QueueManager {
 
     private GenZProfessor genZProfessor;
 
-    private FirefoxManager firefoxManager;
+    private CheggRequest cheggRequest;
     private ScheduledExecutorService queueService;
 
     public QueueManager(GenZProfessor genZProfessor) {
@@ -28,16 +28,14 @@ public class QueueManager {
     }
 
     public void setup() {
-        this.firefoxManager = new FirefoxManager(this.genZProfessor);
-        this.firefoxManager.start();
-        this.firefoxManager.setup();
+        this.cheggRequest = new CheggRequest();
+        this.cheggRequest.start();
         setupQueue();
     }
 
     public void quit() {
         this.requestQueue.clear();
         this.queueService.shutdown();
-        this.firefoxManager.quit();
     }
 
     public void add(User user, String link) {
@@ -46,15 +44,21 @@ public class QueueManager {
 
     private void setupQueue() {
         Runnable runnable = () -> {
-            if (!this.firefoxManager.isRunning() && !this.requestQueue.isEmpty()) {
+            if (!this.cheggRequest.isRunning() && !this.requestQueue.isEmpty()) {
                 Request request = this.requestQueue.remove();
                 if (request == null) return;
                 System.out.println("Processing request: " + request.getUserId());
-                this.firefoxManager.processLink(request.getLink(), (files) -> {
+                this.cheggRequest.processLink(request.getLink(), (files) -> {
                     User user = this.genZProfessor.getJda().getUserById(request.getUserId());
                     if (user == null) return;
+
+                    if (files == null) {
+                        System.out.println("Files was null");
+                        return;
+                    }
+
                     user.openPrivateChannel().queue(privateChannel -> {
-                        privateChannel.sendMessage("Hello here's the files.").queue();
+                        privateChannel.sendMessage("**Here's the html file containing the answers.**").queue();
                         files.forEach((file -> privateChannel.sendFile(file).queue()));
                         privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
                     });
@@ -63,6 +67,10 @@ public class QueueManager {
         };
         this.queueService = Executors.newSingleThreadScheduledExecutor();
         this.queueService.scheduleAtFixedRate(runnable, 0, 1, TimeUnit.SECONDS);
+    }
+
+    public int getThing() {
+        return this.requestQueue.size();
     }
 }
 
