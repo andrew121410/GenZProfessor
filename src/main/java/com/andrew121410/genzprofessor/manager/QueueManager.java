@@ -5,8 +5,10 @@ import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.User;
 
+import java.awt.*;
 import java.util.LinkedList;
 import java.util.Queue;
 import java.util.concurrent.Executors;
@@ -58,8 +60,17 @@ public class QueueManager {
                     }
 
                     user.openPrivateChannel().queue(privateChannel -> {
-                        privateChannel.sendMessage("**Here's the html file containing the answers.**").queue();
+                        privateChannel.sendMessage("**Here's the files**").queue();
                         files.forEach((file -> privateChannel.sendFile(file).queue()));
+
+                        EmbedBuilder embedBuilder = new EmbedBuilder()
+                                .setAuthor("Chegg Answers")
+                                .setThumbnail("https://media.giphy.com/media/cPIHGR2FxpFWBZ2CPD/giphy.gif")
+                                .setDescription("Your request has been completed!\r\nThe files are above me.")
+                                .setFooter("GenZProfessor | V: 1.0 | LastTimeUpdated: 9/29/2020")
+                                .setColor(Color.getHSBColor(0, 88, 181));
+                        privateChannel.sendMessage(embedBuilder.build()).queue();
+
                         privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
                     });
                 });

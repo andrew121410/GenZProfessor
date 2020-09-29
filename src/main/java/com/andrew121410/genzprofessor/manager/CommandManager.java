@@ -15,6 +15,7 @@ import java.util.concurrent.TimeUnit;
 public class CommandManager {
 
     private Map<String, ICommand> commandMap;
+    private Map<String, String> shortcutMap;
 
     private GenZProfessor genZProfessor;
     private String prefix;
@@ -22,6 +23,7 @@ public class CommandManager {
     public CommandManager(GenZProfessor genZProfessor) {
         this.genZProfessor = genZProfessor;
         this.commandMap = this.genZProfessor.getSetListMap().getCommandMap();
+        this.shortcutMap = this.genZProfessor.getSetListMap().getShortcutMap();
         this.prefix = this.genZProfessor.getConfigManager().getMainConfig().getPrefix();
     }
 
@@ -32,6 +34,7 @@ public class CommandManager {
         if (!event.getMessage().getContentRaw().startsWith(prefix)) {
             return;
         }
+
         String arg = event.getMessage().getContentRaw();
         String[] oldArgs = arg.split(" ");
         oldArgs[0] = oldArgs[0].replace(prefix, "");
@@ -44,8 +47,13 @@ public class CommandManager {
         }
     }
 
-    public void register(ICommand iCommandManager, String command) {
+    public void register(ICommand iCommandManager, String command, String[] shortcuts) {
         this.commandMap.putIfAbsent(command.toLowerCase(), iCommandManager);
+        if (shortcuts != null) {
+            for (String shortcut : shortcuts) {
+                this.shortcutMap.putIfAbsent(command.toLowerCase(), shortcut);
+            }
+        }
         System.out.println("CommandManager Registered: " + iCommandManager.getClass() + " ? CMD: " + command);
     }
 

@@ -5,14 +5,18 @@ import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
 
+import javax.imageio.ImageIO;
+import java.awt.image.BufferedImage;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public class CheggRequest extends Thread {
 
@@ -42,7 +46,7 @@ public class CheggRequest extends Thread {
     public void processLink(String url, Consumer<List<File>> consumer) {
         this.running = true;
         Document document = Jsoup.connect(url).headers(createHeaders()).get();
-        List<File> files = new ArrayList<>();
+        List<File> files = new ArrayList<>(getPictures(document));
         File htmlFile = getAnswerHtml(document);
         if (htmlFile == null) {
             consumer.accept(null);
@@ -54,32 +58,30 @@ public class CheggRequest extends Thread {
         this.running = false;
     }
 
-//    private List<File> getPictures(Document document) {
-//        Objects.requireNonNull(document, "Document can't be null");
-//        Elements answerElements = document.getElementsByClass("answers-list");
-//        return answerElements.stream().filter(element -> element.tagName().contains("img")).map(element -> element.absUrl("src")).map(this::URLToFile).filter(Objects::nonNull).collect(Collectors.toList());
-//    }
+    private List<File> getPictures(Document document) {
+        Objects.requireNonNull(document, "Document can't be null");
+        Elements answerElements = document.getElementsByClass("answers-list");
+        Elements imageElements = answerElements.select("img");
+        return imageElements.stream().map(element -> element.attr("src")).collect(Collectors.toList()).stream().map(this::URLToFile).filter(Objects::nonNull).collect(Collectors.toList());
+    }
 
-//    private int a = 0;
-//
-//    private File URLToFile(String url) {
-//        if (url != null) {
-//            System.out.println("URL: " + url);
-//            return null;
-//        }
-//
-//        File file = new File(this.tempFolder, a + Instant.now().getNano() + ".png");
-//        try {
-//            URL urlObject = new URL(url);
-//            BufferedImage saveImage = ImageIO.read(urlObject);
-//            ImageIO.write(saveImage, "png", file);
-//            a++;
-//            return file;
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//        }
-//        return file;
-//    }
+    private int a = 0;
+
+    private File URLToFile(String url) {
+        if (url.contains("avatars")) return null;
+
+        File file = new File(this.tempFolder, a + Instant.now().getNano() + ".png");
+        try {
+            URL urlObject = new URL(url);
+            BufferedImage saveImage = ImageIO.read(urlObject);
+            ImageIO.write(saveImage, "png", file);
+            a++;
+            return file;
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return file;
+    }
 
     private File getAnswerHtml(Document document) {
         Objects.requireNonNull(document, "Document can't be null");

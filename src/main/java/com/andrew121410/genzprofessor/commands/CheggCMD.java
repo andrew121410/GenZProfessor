@@ -14,17 +14,18 @@ public class CheggCMD implements ICommand {
 
     public CheggCMD(GenZProfessor genZProfessor) {
         this.genZProfessor = genZProfessor;
-        this.genZProfessor.getCommandManager().register(this, "c");
+        this.genZProfessor.getCommandManager().register(this, "c", null);
     }
 
     @Override
     public boolean onMessage(MessageReceivedEvent event, String[] args) {
-        TextChannel textChannel = event.getGuild().getTextChannelById("760306355805749248");
-
-        if (!event.getTextChannel().getId().equals("760306355805749248")) {
-            event.getMessage().delete().queue();
-            event.getTextChannel().sendMessage("Wrong channel please use " + textChannel.getAsMention() + " " + event.getAuthor().getAsMention()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
-            return true;
+        if (event.getGuild().getId().equals("760507288531763210")) {
+            TextChannel rightChannel = event.getGuild().getTextChannelById("760512271741878392");
+            if (!event.getTextChannel().getId().equals("760512271741878392")) {
+                event.getMessage().delete().queue();
+                event.getTextChannel().sendMessage("Wrong channel please use " + rightChannel.getAsMention() + " " + event.getAuthor().getAsMention()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
+                return true;
+            }
         }
 
         if (args.length == 0) {
