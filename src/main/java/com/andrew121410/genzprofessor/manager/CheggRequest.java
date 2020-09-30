@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 
 public class CheggRequest extends Thread {
 
-    private boolean running;
     private File tempFolder;
     private String cookie;
 
@@ -38,24 +37,19 @@ public class CheggRequest extends Thread {
         } catch (IOException exception) {
             exception.printStackTrace();
         }
-
-        this.running = false;
     }
 
     @SneakyThrows
     public void processLink(String url, Consumer<List<File>> consumer) {
-        this.running = true;
         Document document = Jsoup.connect(url).headers(createHeaders()).get();
         List<File> files = new ArrayList<>(getPictures(document));
         File htmlFile = getAnswerHtml(document);
         if (htmlFile == null) {
             consumer.accept(null);
-            this.running = false;
             return;
         }
         files.add(htmlFile);
         consumer.accept(files);
-        this.running = false;
     }
 
     private List<File> getPictures(Document document) {
@@ -68,6 +62,7 @@ public class CheggRequest extends Thread {
     private int a = 0;
 
     private File URLToFile(String url) {
+        //https://stackoverflow.com/questions/12465586/how-can-i-download-an-image-using-jsoup
         if (url.contains("avatars")) return null;
 
         File file = new File(this.tempFolder, a + Instant.now().getNano() + ".png");
@@ -127,9 +122,5 @@ public class CheggRequest extends Thread {
         map.put("upgrade-insecure-requests", "1");
         map.put("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36");
         return map;
-    }
-
-    public boolean isRunning() {
-        return running;
     }
 }

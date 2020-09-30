@@ -38,12 +38,12 @@ public class CheggCMD implements ICommand {
                 return true;
             }
 
-            this.genZProfessor.getQueueManager().add(event.getAuthor(), message);
+            this.genZProfessor.getQueueManager().add(event.getGuild(), event.getAuthor(), message);
             EmbedBuilder embedBuilder = new EmbedBuilder()
                     .setAuthor("Chegg Answers")
                     .setThumbnail("https://i.pinimg.com/originals/70/a5/52/70a552e8e955049c8587b2d7606cd6a6.gif")
                     .setTitle("Your Chegg request is being processed.")
-                    .setDescription("Your request has been placed into the queue \r\n You are number " + this.genZProfessor.getQueueManager().getThing()
+                    .setDescription("Your request has been placed into the queue \r\n You are number " + this.genZProfessor.getQueueManager().getSize()
                             + "\r\n " + "\r\nOnce we are done processing your request we will send you a DM " + event.getMember().getAsMention());
             event.getTextChannel().sendMessage(embedBuilder.build()).queue(message1 -> message1.delete().queueAfter(30, TimeUnit.SECONDS));
             event.getMessage().delete().queueAfter(30, TimeUnit.SECONDS);

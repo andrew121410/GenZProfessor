@@ -6,6 +6,7 @@ import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.ToString;
 import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.User;
 
 import java.awt.*;
@@ -19,6 +20,7 @@ public class QueueManager {
 
     private Queue<Request> requestQueue;
 
+    private boolean running;
     private GenZProfessor genZProfessor;
 
     private CheggRequest cheggRequest;
@@ -33,6 +35,7 @@ public class QueueManager {
         this.cheggRequest = new CheggRequest();
         this.cheggRequest.start();
         setupQueue();
+        running = false;
     }
 
     public void quit() {
@@ -40,26 +43,23 @@ public class QueueManager {
         this.queueService.shutdown();
     }
 
-    public void add(User user, String link) {
-        this.requestQueue.add(new Request(user.getId(), link));
+    public void add(Guild guild, User user, String link) {
+        this.requestQueue.add(new Request(guild.getId(), user.getId(), link));
     }
 
     private void setupQueue() {
         Runnable runnable = () -> {
-            if (!this.cheggRequest.isRunning() && !this.requestQueue.isEmpty()) {
+            if (!this.running && !this.requestQueue.isEmpty()) {
+                this.running = true;
                 Request request = this.requestQueue.remove();
                 if (request == null) return;
                 System.out.println("Processing request: " + request.getUserId());
                 this.cheggRequest.processLink(request.getLink(), (files) -> {
-                    User user = this.genZProfessor.getJda().getUserById(request.getUserId());
-                    if (user == null) return;
-
                     if (files == null) {
                         System.out.println("Files was null");
                         return;
                     }
-
-                    user.openPrivateChannel().queue(privateChannel -> {
+                    GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
                         privateChannel.sendMessage("**Here's the files**").queue();
                         files.forEach((file -> privateChannel.sendFile(file).queue()));
 
@@ -67,20 +67,22 @@ public class QueueManager {
                                 .setAuthor("Chegg Answers")
                                 .setThumbnail("https://media.giphy.com/media/cPIHGR2FxpFWBZ2CPD/giphy.gif")
                                 .setDescription("Your request has been completed!\r\nThe files are above me.")
-                                .setFooter("GenZProfessor | V: 1.0 | LastTimeUpdated: 9/29/2020")
+                                .setFooter("GenZProfessor | V: 1.0 | LastTimeUpdated: 9/30/2020")
                                 .setColor(Color.getHSBColor(0, 88, 181));
                         privateChannel.sendMessage(embedBuilder.build()).queue();
 
                         privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
                     });
+                    this.running = false;
                 });
+                this.running = false;
             }
         };
         this.queueService = Executors.newSingleThreadScheduledExecutor();
         this.queueService.scheduleAtFixedRate(runnable, 0, 1, TimeUnit.SECONDS);
     }
 
-    public int getThing() {
+    public int getSize() {
         return this.requestQueue.size();
     }
 }
@@ -90,6 +92,7 @@ public class QueueManager {
 @ToString
 @EqualsAndHashCode
 class Request {
+    private String guildId;
     private String userId;
     private String link;
 }
