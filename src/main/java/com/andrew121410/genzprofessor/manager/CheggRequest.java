@@ -56,7 +56,7 @@ public class CheggRequest extends Thread {
         Objects.requireNonNull(document, "Document can't be null");
         Elements answerElements = document.getElementsByClass("answers-list");
         Elements imageElements = answerElements.select("img");
-        return imageElements.stream().map(element -> element.attr("src")).collect(Collectors.toList()).stream().map(this::URLToFile).filter(Objects::nonNull).collect(Collectors.toList());
+        return imageElements.stream().map(element -> element.absUrl("src")).collect(Collectors.toList()).stream().map(this::URLToFile).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     private int a = 0;
@@ -64,6 +64,11 @@ public class CheggRequest extends Thread {
     private File URLToFile(String url) {
         //https://stackoverflow.com/questions/12465586/how-can-i-download-an-image-using-jsoup
         if (url.contains("avatars")) return null;
+
+        //The url is broken have to fix it...
+        if (url.startsWith("//")) {
+            url = "https:" + url;
+        }
 
         File file = new File(this.tempFolder, a + Instant.now().getNano() + ".png");
         try {

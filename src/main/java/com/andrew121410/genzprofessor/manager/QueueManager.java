@@ -52,27 +52,39 @@ public class QueueManager {
             if (!this.running && !this.requestQueue.isEmpty()) {
                 this.running = true;
                 Request request = this.requestQueue.remove();
-                if (request == null) return;
+                if (request == null) {
+                    this.running = false;
+                    return;
+                }
                 System.out.println("Processing request: " + request.getUserId());
                 this.cheggRequest.processLink(request.getLink(), (files) -> {
                     if (files == null) {
                         System.out.println("Files was null");
+                        this.running = false;
                         return;
                     }
-                    GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
-                        privateChannel.sendMessage("**Here's the files**").queue();
-                        files.forEach((file -> privateChannel.sendFile(file).queue()));
+                    if (!files.isEmpty()) {
+                        GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
+                            privateChannel.sendMessage("**Here's the files**").queue();
+                            files.forEach((file -> privateChannel.sendFile(file).queue()));
 
-                        EmbedBuilder embedBuilder = new EmbedBuilder()
-                                .setAuthor("Chegg Answers")
-                                .setThumbnail("https://media.giphy.com/media/cPIHGR2FxpFWBZ2CPD/giphy.gif")
-                                .setDescription("Your request has been completed!\r\nThe files are above me.")
-                                .setFooter("GenZProfessor | V: 1.0 | LastTimeUpdated: 9/30/2020")
-                                .setColor(Color.getHSBColor(0, 88, 181));
-                        privateChannel.sendMessage(embedBuilder.build()).queue();
+                            EmbedBuilder embedBuilder = new EmbedBuilder()
+                                    .setAuthor("Chegg Answers")
+                                    .setThumbnail("https://media.giphy.com/media/cPIHGR2FxpFWBZ2CPD/giphy.gif")
+                                    .setDescription("Your request has been completed!\r\nThe files are above me.")
+                                    .setFooter("GenZProfessor | V: 1.0 | LastTimeUpdated: 9/30/2020")
+                                    .setColor(Color.getHSBColor(0, 88, 181));
+                            privateChannel.sendMessage(embedBuilder.build()).queue();
 
-                        privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
-                    });
+                            privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
+                        });
+                    } else {
+                        System.out.println("FAILED: " + request);
+                        GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
+                            privateChannel.sendMessage("Your request has failed.\r\nThis error has been reported to the bot developers.").queue();
+                            privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
+                        });
+                    }
                     this.running = false;
                 });
                 this.running = false;
