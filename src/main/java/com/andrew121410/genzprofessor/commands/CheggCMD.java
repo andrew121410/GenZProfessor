@@ -18,7 +18,7 @@ public class CheggCMD implements ICommand {
     }
 
     @Override
-    public boolean onMessage(MessageReceivedEvent event, String[] args) {
+    public boolean onMessage(MessageReceivedEvent event, String prefix, String[] args) {
         if (event.getGuild().getId().equals("760507288531763210")) {
             TextChannel rightChannel = event.getGuild().getTextChannelById("760512271741878392");
             if (!event.getTextChannel().getId().equals("760512271741878392")) {
@@ -29,7 +29,7 @@ public class CheggCMD implements ICommand {
         }
 
         if (args.length == 0) {
-            event.getTextChannel().sendMessage("Usage: " + this.genZProfessor.getConfigManager().getMainConfig().getPrefix() + "c <Link>").queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
+            event.getTextChannel().sendMessage("Usage: " + this.genZProfessor.getConfigManager().getMainConfig().getPrefix() + prefix + " <Link>").queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
         } else if (args.length == 1) {
             String message = args[0];
 

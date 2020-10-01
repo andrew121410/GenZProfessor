@@ -16,10 +16,4 @@ public class GenZProfessorJacksonConfig {
 
     @JsonProperty("Command-Prefix")
     private String prefix = "!";
-
-    @JsonProperty("Chegg-Email")
-    private String cheggEmail = "email";
-
-    @JsonProperty("Chegg-Password")
-    private String cheggPassword = "password";
 }

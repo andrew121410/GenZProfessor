@@ -42,6 +42,8 @@ public class CheggRequest extends Thread {
     @SneakyThrows
     public void processLink(String url, Consumer<List<File>> consumer) {
         Document document = Jsoup.connect(url).headers(createHeaders()).get();
+        String code = document.html().replaceAll("\"//", "\"https://");
+        document = Jsoup.parse(code);
         List<File> files = new ArrayList<>(getPictures(document));
         File htmlFile = getAnswerHtml(document);
         if (htmlFile == null) {
@@ -65,11 +67,6 @@ public class CheggRequest extends Thread {
         //https://stackoverflow.com/questions/12465586/how-can-i-download-an-image-using-jsoup
         if (url.contains("avatars")) return null;
 
-        //The url is broken have to fix it...
-        if (url.startsWith("//")) {
-            url = "https:" + url;
-        }
-
         File file = new File(this.tempFolder, a + Instant.now().getNano() + ".png");
         try {
             URL urlObject = new URL(url);
@@ -85,12 +82,13 @@ public class CheggRequest extends Thread {
 
     private File getAnswerHtml(Document document) {
         Objects.requireNonNull(document, "Document can't be null");
-        Elements elements = document.getElementsByClass("txt-body answer-body");
-        if (elements == null) return null;
+//        Elements elements = document.getElementsByClass("txt-body answer-body");
+        Document document1 = new WebsiteStyler().format(document);
+        if (document1 == null) return null;
         File file = new File(this.tempFolder, "answer." + Instant.now().getNano() + ".html");
         try (FileWriter fileWriter = new FileWriter(file)) {
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-            bufferedWriter.write(elements.toString());
+            bufferedWriter.write(document1.toString());
             bufferedWriter.close();
         } catch (Exception e) {
             e.printStackTrace();
