@@ -18,7 +18,7 @@ public class WebsiteStyler {
         stringBuilder.append("<html lang=\"en\">");
         stringBuilder.append("<body>");
 
-        stringBuilder.append("<style>\r\n" +
+        stringBuilder.append("<style>" + NEW_LINE +
                 ".accordion {\n" +
                 "background-color: #fc2403;\n" +
                 "color: #00000;\n" +
@@ -32,14 +32,14 @@ public class WebsiteStyler {
                 "overflow:hidden;\n" +
                 "filter: brightness(100%);\n" +
                 "transition:filter 0.15s;\n" +
-                "}\r\n" +
+                "}" + NEW_LINE +
                 ".accordion:hover {\n" +
                 "filter: brightness(125%);\n" +
                 "border: solid black;\n" +
-                "}\r\n" +
+                "}" + NEW_LINE +
                 "body {\n" +
                 "background-color: rgb(0, 180, 186);\n" +
-                "}\r\n" +
+                "}" + NEW_LINE +
                 "</style>");
 
         //Question button

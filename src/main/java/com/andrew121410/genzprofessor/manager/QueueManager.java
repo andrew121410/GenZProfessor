@@ -72,7 +72,7 @@ public class QueueManager {
                                     .setAuthor("Chegg Answers")
                                     .setThumbnail("https://media.giphy.com/media/cPIHGR2FxpFWBZ2CPD/giphy.gif")
                                     .setDescription("Your request has been completed!\r\nThe files are above me.")
-                                    .setFooter("GenZProfessor | V: 1.0 | LastTimeUpdated: 9/30/2020")
+                                    .setFooter("GenZProfessor | V: 1.0 | LastTimeUpdated: 10/1/2020")
                                     .setColor(Color.getHSBColor(0, 88, 181));
                             privateChannel.sendMessage(embedBuilder.build()).queue();
 

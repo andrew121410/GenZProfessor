@@ -14,7 +14,7 @@ public class CheggCMD implements ICommand {
 
     public CheggCMD(GenZProfessor genZProfessor) {
         this.genZProfessor = genZProfessor;
-        this.genZProfessor.getCommandManager().register(this, "c", null);
+        this.genZProfessor.getCommandManager().register(this, "c", new String[]{"chegg"});
     }
 
     @Override

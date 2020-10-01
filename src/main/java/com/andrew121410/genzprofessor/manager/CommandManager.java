@@ -40,8 +40,8 @@ public class CommandManager {
         if (this.commandMap.containsKey(command) || this.shortcutMap.containsKey(command)) {
             String prefix = command;
             if (this.shortcutMap.containsKey(command)) prefix = this.shortcutMap.get(command);
-            ICommand iCommand = this.commandMap.get(command);
-            iCommand.onMessage(event, prefix, modifiedArray);
+            ICommand iCommand = this.commandMap.get(prefix);
+            iCommand.onMessage(event, command, modifiedArray);
         }
     }
 
