@@ -57,34 +57,49 @@ public class QueueManager {
                     return;
                 }
                 System.out.println("Processing request: " + request.getUserId());
-                this.cheggRequest.processLink(request.getLink(), (files) -> {
-                    if (files == null) {
-                        System.out.println("Files was null");
+                this.cheggRequest.processLink(request.getLink(), (completeResults) -> {
+                    if (completeResults.getResult().hasFailed() || completeResults.getFiles().isEmpty()) {
+                        if (completeResults.getResult() == Result.FAILED_TEXTBOOK_SOLUTION) {
+                            GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
+                                EmbedBuilder embedBuilder = new EmbedBuilder()
+                                        .setTitle("Chegg request failed")
+                                        .setThumbnail("https://media.giphy.com/media/HNEmXQz7A0lDq/giphy.gif")
+                                        .setDescription("Unfortunately, the link you provided was a **textbook solution**.\r\nWe don't support textbook solutions.")
+                                        .setFooter("My bad...")
+                                        .setColor(Color.RED);
+                                privateChannel.sendMessage(embedBuilder.build()).queue();
+                                privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
+                            });
+                        } else if (completeResults.getResult() == Result.FAILED_UNKNOWN_REASON || completeResults.getFiles().isEmpty()) {
+                            GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
+                                EmbedBuilder embedBuilder = new EmbedBuilder()
+                                        .setTitle("Chegg request failed")
+                                        .setThumbnail("https://media.giphy.com/media/HNEmXQz7A0lDq/giphy.gif")
+                                        .setDescription("Unfortunately, something randomly went wrong.")
+                                        .setFooter("My bad...")
+                                        .setColor(Color.RED);
+                                privateChannel.sendMessage(embedBuilder.build()).queue();
+                                privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
+                            });
+                        }
                         this.running = false;
                         return;
                     }
-                    if (!files.isEmpty()) {
-                        GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
-                            privateChannel.sendMessage("**Here's the files**").queue();
-                            files.forEach((file -> privateChannel.sendFile(file).queue()));
 
-                            EmbedBuilder embedBuilder = new EmbedBuilder()
-                                    .setAuthor("Chegg Answers")
-                                    .setThumbnail("https://media.giphy.com/media/cPIHGR2FxpFWBZ2CPD/giphy.gif")
-                                    .setDescription("Your request has been completed!\r\nThe files are above me.")
-                                    .setFooter("GenZProfessor | V: 1.0 | LastTimeUpdated: 10/1/2020")
-                                    .setColor(Color.getHSBColor(0, 88, 181));
-                            privateChannel.sendMessage(embedBuilder.build()).queue();
+                    GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
+                        privateChannel.sendMessage("**Here's the files**").queue();
+                        completeResults.getFiles().forEach((file -> privateChannel.sendFile(file).queue()));
 
-                            privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
-                        });
-                    } else {
-                        System.out.println("FAILED: " + request);
-                        GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
-                            privateChannel.sendMessage("Your request has failed.\r\nThis error has been reported to the bot developers.").queue();
-                            privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
-                        });
-                    }
+                        EmbedBuilder embedBuilder = new EmbedBuilder()
+                                .setAuthor("Chegg Answers")
+                                .setThumbnail("https://media.giphy.com/media/cPIHGR2FxpFWBZ2CPD/giphy.gif")
+                                .setDescription("Your request has been completed!\r\nThe files are above me.")
+                                .setFooter("GenZProfessor | V: 1.0 | LastTimeUpdated: 10/1/2020")
+                                .setColor(Color.getHSBColor(0, 88, 181));
+                        privateChannel.sendMessage(embedBuilder.build()).queue();
+
+                        privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
+                    });
                     this.running = false;
                 });
                 this.running = false;

@@ -1,6 +1,6 @@
 package com.andrew121410.genzprofessor.manager;
 
-import lombok.SneakyThrows;
+import lombok.*;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -40,25 +40,31 @@ public class CheggRequest extends Thread {
     }
 
     @SneakyThrows
-    public void processLink(String url, Consumer<List<File>> consumer) {
+    public void processLink(String url, Consumer<CompleteResults> consumer) {
         Document document = Jsoup.connect(url).headers(createHeaders()).get();
         String code = document.html().replaceAll("\"//", "\"https://");
         document = Jsoup.parse(code);
-        List<File> files = new ArrayList<>(getPictures(document));
-        File htmlFile = getAnswerHtml(document);
-        if (htmlFile == null) {
-            consumer.accept(null);
+
+        if (isTextbookSolution(document)) {
+            consumer.accept(new CompleteResults(null, Result.FAILED_TEXTBOOK_SOLUTION));
             return;
         }
+
+        List<File> files = new ArrayList<>(getPictures(document));
+        File htmlFile = getAnswerHtml(document);
         files.add(htmlFile);
-        consumer.accept(files);
+        consumer.accept(new CompleteResults(files, Result.SUCCESS));
+    }
+
+    private boolean isTextbookSolution(Document document) {
+        return !document.select("#solution-player-sdk").isEmpty();
     }
 
     private List<File> getPictures(Document document) {
         Objects.requireNonNull(document, "Document can't be null");
         Elements answerElements = document.getElementsByClass("answers-list");
         Elements imageElements = answerElements.select("img");
-        return imageElements.stream().map(element -> element.absUrl("src")).collect(Collectors.toList()).stream().map(this::URLToFile).filter(Objects::nonNull).collect(Collectors.toList());
+        return imageElements.stream().map(element -> URLToFile(element.absUrl("src"))).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
     private int a = 0;
@@ -84,7 +90,6 @@ public class CheggRequest extends Thread {
         Objects.requireNonNull(document, "Document can't be null");
 //        Elements elements = document.getElementsByClass("txt-body answer-body");
         Document document1 = new WebsiteStyler().format(document);
-        if (document1 == null) return null;
         File file = new File(this.tempFolder, "answer." + Instant.now().getNano() + ".html");
         try (FileWriter fileWriter = new FileWriter(file)) {
             BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
@@ -125,5 +130,29 @@ public class CheggRequest extends Thread {
         map.put("upgrade-insecure-requests", "1");
         map.put("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36");
         return map;
+    }
+}
+
+@Getter
+@AllArgsConstructor
+@ToString
+@EqualsAndHashCode
+class CompleteResults {
+    private final List<File> files;
+    private final Result result;
+}
+
+enum Result {
+    SUCCESS,
+    FAILED_UNKNOWN_REASON,
+    FAILED_TEXTBOOK_SOLUTION;
+
+    public boolean hasFailed() {
+        switch (this) {
+            case FAILED_UNKNOWN_REASON:
+            case FAILED_TEXTBOOK_SOLUTION:
+                return true;
+        }
+        return false;
     }
 }
