@@ -30,11 +30,13 @@ public class CheggCMD implements ICommand {
 
         if (args.length == 0) {
             event.getTextChannel().sendMessage("Usage: " + this.genZProfessor.getConfigManager().getMainConfig().getPrefix() + prefix + " <Link>").queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
+            event.getMessage().delete().queueAfter(30, TimeUnit.SECONDS);
         } else if (args.length == 1) {
             String message = args[0];
 
             if (!message.startsWith("https://www.chegg.com/homework-help")) {
                 event.getTextChannel().sendMessage("Sorry that doesn't look like a valid link").queue(message1 -> message1.delete().queueAfter(30, TimeUnit.SECONDS));
+                event.getMessage().delete().queueAfter(30, TimeUnit.SECONDS);
                 return true;
             }
 
