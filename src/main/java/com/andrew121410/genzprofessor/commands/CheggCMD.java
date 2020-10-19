@@ -20,11 +20,21 @@ public class CheggCMD implements ICommand {
     @Override
     public boolean onMessage(MessageReceivedEvent event, String prefix, String[] args) {
         if (event.getGuild().getId().equals("760507288531763210")) {
-            TextChannel rightChannel = event.getGuild().getTextChannelById("760512271741878392");
-            if (!event.getTextChannel().getId().equals("760512271741878392")) {
-                event.getMessage().delete().queue();
-                event.getTextChannel().sendMessage("Wrong channel please use " + rightChannel.getAsMention() + " " + event.getAuthor().getAsMention()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
-                return true;
+            boolean hasDonatorRole = event.getMember().getRoles().stream().anyMatch(role -> role.getName().equalsIgnoreCase("Donator"));
+            TextChannel freeChannel = event.getGuild().getTextChannelById("760512271741878392");
+            TextChannel paidChannel = event.getGuild().getTextChannelById("764308806242402315");
+            if (!hasDonatorRole) {
+                if (!event.getTextChannel().getId().equals("760512271741878392")) {
+                    event.getMessage().delete().queue();
+                    event.getTextChannel().sendMessage("Wrong channel please use " + freeChannel.getAsMention() + " " + event.getAuthor().getAsMention()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
+                    return true;
+                }
+            } else {
+                if (!event.getTextChannel().getId().equals("764308806242402315")) {
+                    event.getMessage().delete().queue();
+                    event.getTextChannel().sendMessage("Wrong channel please use " + paidChannel.getAsMention() + " " + event.getAuthor().getAsMention()).queue(message -> message.delete().queueAfter(30, TimeUnit.SECONDS));
+                    return true;
+                }
             }
         }
 
