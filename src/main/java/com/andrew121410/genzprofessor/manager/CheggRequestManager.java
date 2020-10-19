@@ -20,14 +20,14 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class CheggRequest extends Thread {
+public class CheggRequestManager extends Thread {
 
     private File tempFolder;
     private String cookie;
 
-    private ACheggRequest currentRequest;
+    private ACheggRequest aCheggRequest;
 
-    public CheggRequest() {
+    public CheggRequestManager() {
         this.tempFolder = new File("cache");
         if (this.tempFolder.exists()) {
             for (File file : this.tempFolder.listFiles()) file.delete();
@@ -45,14 +45,15 @@ public class CheggRequest extends Thread {
 
     @SneakyThrows
     public void processLink(ACheggRequest currentRequest, Consumer<CheggRequestResult> consumer) {
-        this.currentRequest = currentRequest;
+        this.aCheggRequest = currentRequest;
 
         Document document = Jsoup.connect(currentRequest.getLink()).headers(createHeaders()).get();
         String code = document.html().replaceAll("\"//", "\"https://");
         document = Jsoup.parse(code);
 
         if (isTextbookSolution(document)) {
-            consumer.accept(new CheggRequestResult(null, CheggRequestResult.Result.FAILED_TEXTBOOK_SOLUTION));
+            CheggRequestResult cheggRequestResult = new FirefoxManager(this).processLink(currentRequest);
+            consumer.accept(cheggRequestResult);
             return;
         }
 
@@ -119,7 +120,7 @@ public class CheggRequest extends Thread {
         return file;
     }
 
-    private Map<String, String> createHeaders() {
+    protected Map<String, String> createHeaders() {
         Map<String, String> map = new HashMap<>();
         map.put("cookie", this.cookie);
         map.put("authority", "www.chegg.com");

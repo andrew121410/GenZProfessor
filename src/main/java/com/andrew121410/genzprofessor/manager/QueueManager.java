@@ -19,7 +19,7 @@ public class QueueManager {
     private boolean running;
     private GenZProfessor genZProfessor;
 
-    private CheggRequest cheggRequest;
+    private CheggRequestManager cheggRequestManager;
     private ScheduledExecutorService queueService;
 
     public QueueManager(GenZProfessor genZProfessor) {
@@ -28,8 +28,8 @@ public class QueueManager {
     }
 
     public void setup() {
-        this.cheggRequest = new CheggRequest();
-        this.cheggRequest.start();
+        this.cheggRequestManager = new CheggRequestManager();
+        this.cheggRequestManager.start();
         setupQueue();
         running = false;
     }
@@ -53,7 +53,7 @@ public class QueueManager {
                     return;
                 }
                 System.out.println("Processing request: " + aCheggRequest.getUserId());
-                this.cheggRequest.processLink(aCheggRequest, (completeResults) -> {
+                this.cheggRequestManager.processLink(aCheggRequest, (completeResults) -> {
                     if (completeResults.getResult().hasFailed() || completeResults.getFiles().isEmpty()) {
                         if (completeResults.getResult() == CheggRequestResult.Result.FAILED_TEXTBOOK_SOLUTION) {
                             GenZProfessor.getInstance().getJda().openPrivateChannelById(aCheggRequest.getUserId()).queue(privateChannel -> {
