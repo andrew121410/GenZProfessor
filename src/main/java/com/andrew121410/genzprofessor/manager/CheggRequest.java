@@ -1,6 +1,8 @@
 package com.andrew121410.genzprofessor.manager;
 
-import lombok.*;
+import com.andrew121410.genzprofessor.objects.ACheggRequest;
+import com.andrew121410.genzprofessor.objects.CheggRequestResult;
+import lombok.SneakyThrows;
 import org.jsoup.Jsoup;
 import org.jsoup.nodes.Document;
 import org.jsoup.select.Elements;
@@ -23,6 +25,8 @@ public class CheggRequest extends Thread {
     private File tempFolder;
     private String cookie;
 
+    private ACheggRequest currentRequest;
+
     public CheggRequest() {
         this.tempFolder = new File("cache");
         if (this.tempFolder.exists()) {
@@ -40,20 +44,22 @@ public class CheggRequest extends Thread {
     }
 
     @SneakyThrows
-    public void processLink(String url, Consumer<CompleteResults> consumer) {
-        Document document = Jsoup.connect(url).headers(createHeaders()).get();
+    public void processLink(ACheggRequest currentRequest, Consumer<CheggRequestResult> consumer) {
+        this.currentRequest = currentRequest;
+
+        Document document = Jsoup.connect(currentRequest.getLink()).headers(createHeaders()).get();
         String code = document.html().replaceAll("\"//", "\"https://");
         document = Jsoup.parse(code);
 
         if (isTextbookSolution(document)) {
-            consumer.accept(new CompleteResults(null, Result.FAILED_TEXTBOOK_SOLUTION));
+            consumer.accept(new CheggRequestResult(null, CheggRequestResult.Result.FAILED_TEXTBOOK_SOLUTION));
             return;
         }
 
         List<File> files = new ArrayList<>(getPictures(document));
         File htmlFile = getAnswerHtml(document);
         files.add(htmlFile);
-        consumer.accept(new CompleteResults(files, Result.SUCCESS));
+        consumer.accept(new CheggRequestResult(files, CheggRequestResult.Result.SUCCESS));
     }
 
     private boolean isTextbookSolution(Document document) {
@@ -130,29 +136,5 @@ public class CheggRequest extends Thread {
         map.put("upgrade-insecure-requests", "1");
         map.put("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36");
         return map;
-    }
-}
-
-@Getter
-@AllArgsConstructor
-@ToString
-@EqualsAndHashCode
-class CompleteResults {
-    private final List<File> files;
-    private final Result result;
-}
-
-enum Result {
-    SUCCESS,
-    FAILED_UNKNOWN_REASON,
-    FAILED_TEXTBOOK_SOLUTION;
-
-    public boolean hasFailed() {
-        switch (this) {
-            case FAILED_UNKNOWN_REASON:
-            case FAILED_TEXTBOOK_SOLUTION:
-                return true;
-        }
-        return false;
     }
 }

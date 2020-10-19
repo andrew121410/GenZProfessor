@@ -1,13 +1,9 @@
 package com.andrew121410.genzprofessor.manager;
 
 import com.andrew121410.genzprofessor.GenZProfessor;
-import lombok.AllArgsConstructor;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.ToString;
+import com.andrew121410.genzprofessor.objects.ACheggRequest;
+import com.andrew121410.genzprofessor.objects.CheggRequestResult;
 import net.dv8tion.jda.api.EmbedBuilder;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.User;
 
 import java.awt.*;
 import java.util.LinkedList;
@@ -18,7 +14,7 @@ import java.util.concurrent.TimeUnit;
 
 public class QueueManager {
 
-    private Queue<Request> requestQueue;
+    private Queue<ACheggRequest> requestQueue;
 
     private boolean running;
     private GenZProfessor genZProfessor;
@@ -43,24 +39,24 @@ public class QueueManager {
         this.queueService.shutdown();
     }
 
-    public void add(Guild guild, User user, String link) {
-        this.requestQueue.add(new Request(guild.getId(), user.getId(), link));
+    public void add(ACheggRequest aCheggRequest) {
+        this.requestQueue.add(aCheggRequest);
     }
 
     private void setupQueue() {
         Runnable runnable = () -> {
             if (!this.running && !this.requestQueue.isEmpty()) {
                 this.running = true;
-                Request request = this.requestQueue.remove();
-                if (request == null) {
+                ACheggRequest aCheggRequest = this.requestQueue.remove();
+                if (aCheggRequest == null) {
                     this.running = false;
                     return;
                 }
-                System.out.println("Processing request: " + request.getUserId());
-                this.cheggRequest.processLink(request.getLink(), (completeResults) -> {
+                System.out.println("Processing request: " + aCheggRequest.getUserId());
+                this.cheggRequest.processLink(aCheggRequest, (completeResults) -> {
                     if (completeResults.getResult().hasFailed() || completeResults.getFiles().isEmpty()) {
-                        if (completeResults.getResult() == Result.FAILED_TEXTBOOK_SOLUTION) {
-                            GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
+                        if (completeResults.getResult() == CheggRequestResult.Result.FAILED_TEXTBOOK_SOLUTION) {
+                            GenZProfessor.getInstance().getJda().openPrivateChannelById(aCheggRequest.getUserId()).queue(privateChannel -> {
                                 EmbedBuilder embedBuilder = new EmbedBuilder()
                                         .setTitle("Chegg request failed")
                                         .setThumbnail("https://media.giphy.com/media/HNEmXQz7A0lDq/giphy.gif")
@@ -70,8 +66,8 @@ public class QueueManager {
                                 privateChannel.sendMessage(embedBuilder.build()).queue();
                                 privateChannel.close().queueAfter(20, TimeUnit.SECONDS);
                             });
-                        } else if (completeResults.getResult() == Result.FAILED_UNKNOWN_REASON || completeResults.getFiles().isEmpty()) {
-                            GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
+                        } else if (completeResults.getResult() == CheggRequestResult.Result.FAILED_UNKNOWN_REASON || completeResults.getFiles().isEmpty()) {
+                            GenZProfessor.getInstance().getJda().openPrivateChannelById(aCheggRequest.getUserId()).queue(privateChannel -> {
                                 EmbedBuilder embedBuilder = new EmbedBuilder()
                                         .setTitle("Chegg request failed")
                                         .setThumbnail("https://media.giphy.com/media/HNEmXQz7A0lDq/giphy.gif")
@@ -86,7 +82,7 @@ public class QueueManager {
                         return;
                     }
 
-                    GenZProfessor.getInstance().getJda().openPrivateChannelById(request.getUserId()).queue(privateChannel -> {
+                    GenZProfessor.getInstance().getJda().openPrivateChannelById(aCheggRequest.getUserId()).queue(privateChannel -> {
                         privateChannel.sendMessage("**Here's the files**").queue();
                         completeResults.getFiles().forEach((file -> privateChannel.sendFile(file).queue()));
 
@@ -94,7 +90,7 @@ public class QueueManager {
                                 .setAuthor("Chegg Answers")
                                 .setThumbnail("https://media.giphy.com/media/cPIHGR2FxpFWBZ2CPD/giphy.gif")
                                 .setDescription("Your request has been completed!\r\nThe files are above me.")
-                                .setFooter("GenZProfessor | V: 1.1 | LastTimeUpdated: 10/9/2020")
+                                .setFooter("GenZProfessor | V: 1.2 | LastTimeUpdated: 10/19/2020")
                                 .setColor(Color.getHSBColor(0, 88, 181));
                         privateChannel.sendMessage(embedBuilder.build()).queue();
 
@@ -112,14 +108,4 @@ public class QueueManager {
     public int getSize() {
         return this.requestQueue.size();
     }
-}
-
-@Getter
-@AllArgsConstructor
-@ToString
-@EqualsAndHashCode
-class Request {
-    private String guildId;
-    private String userId;
-    private String link;
 }
