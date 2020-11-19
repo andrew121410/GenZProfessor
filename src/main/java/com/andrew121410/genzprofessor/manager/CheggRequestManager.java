@@ -1,6 +1,6 @@
 package com.andrew121410.genzprofessor.manager;
 
-import com.andrew121410.genzprofessor.objects.ACheggRequest;
+import com.andrew121410.genzprofessor.objects.CheggRequest;
 import com.andrew121410.genzprofessor.objects.CheggRequestResult;
 import lombok.SneakyThrows;
 import org.jsoup.Jsoup;
@@ -20,14 +20,14 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class CheggRequest extends Thread {
+public class CheggRequestManager extends Thread {
 
     private File tempFolder;
     private String cookie;
 
-    private ACheggRequest currentRequest;
+    private CheggRequest currentRequest;
 
-    public CheggRequest() {
+    public CheggRequestManager() {
         this.tempFolder = new File("cache");
         if (this.tempFolder.exists()) {
             for (File file : this.tempFolder.listFiles()) file.delete();
@@ -44,7 +44,7 @@ public class CheggRequest extends Thread {
     }
 
     @SneakyThrows
-    public void processLink(ACheggRequest currentRequest, Consumer<CheggRequestResult> consumer) {
+    public void processLink(CheggRequest currentRequest, Consumer<CheggRequestResult> consumer) {
         this.currentRequest = currentRequest;
 
         Document document = Jsoup.connect(currentRequest.getLink()).headers(createHeaders()).get();
@@ -134,7 +134,7 @@ public class CheggRequest extends Thread {
         map.put("sec-fetch-site", "same-origin");
         map.put("sec-fetch-user", "?1");
         map.put("upgrade-insecure-requests", "1");
-        map.put("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/85.0.4183.121 Safari/537.36");
+        map.put("user-agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.198 Safari/537.36 Edg/86.0.622.69");
         return map;
     }
 }

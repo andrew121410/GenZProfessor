@@ -2,7 +2,7 @@ package com.andrew121410.genzprofessor.commands;
 
 import com.andrew121410.genzprofessor.GenZProfessor;
 import com.andrew121410.genzprofessor.manager.ICommand;
-import com.andrew121410.genzprofessor.objects.ACheggRequest;
+import com.andrew121410.genzprofessor.objects.CheggRequest;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
@@ -51,7 +51,7 @@ public class CheggCMD implements ICommand {
                 return true;
             }
 
-            this.genZProfessor.getQueueManager().add(new ACheggRequest(event.getGuild().getId(), event.getAuthor().getId(), message));
+            this.genZProfessor.getQueueManager().add(new CheggRequest(event.getGuild().getId(), event.getAuthor().getId(), message));
             EmbedBuilder embedBuilder = new EmbedBuilder()
                     .setAuthor("Chegg Answers")
                     .setThumbnail("https://i.pinimg.com/originals/70/a5/52/70a552e8e955049c8587b2d7606cd6a6.gif")

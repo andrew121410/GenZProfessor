@@ -10,7 +10,7 @@ import lombok.ToString;
 @ToString
 @EqualsAndHashCode
 public
-class ACheggRequest {
+class CheggRequest {
     private String guildId;
     private String userId;
     private String link;
